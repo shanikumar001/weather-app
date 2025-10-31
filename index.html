@@ -3,19 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Weather App - Experiment 13</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <h1 class="title">🌤️ Weather App</h1>
+
     <div class="container">
-    <input type="text" id="city-input" placeholder="Enter city name">
-    <button id="search-btn">Get Weather</button>
 
-    <div class="weather-info">
-        <p id="city-name">City: </p>
-        <p id="temperature">Temperature: </p>
-        <p id="weather-description">Condition: </p>
+        <div class="search-box">
+            <input type="text" id="city-input" placeholder="Enter city name">
+            <button id="search-btn">Search</button>
+            <button id="toggle-btn">Toggle °C/°F</button>
+            <button id="refresh-btn">Refresh</button>
+        </div>
+
+        <div class="weather-info">
+            <p id="city-name"></p>
+            <p id="temperature"></p>
+            <p id="weather-description"></p>
+        </div>
+
+        <div class="forecast" id="forecast-user">
+            <h2>3-Day Weather Forecast</h2>
+        </div>
+
     </div>
-   </div>
 
+    <script src="app.js"></script>
 </body>
 </html>
