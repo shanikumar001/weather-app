@@ -1,8 +1,9 @@
 let isFahrenheit = false;
+let favoriteCities = JSON.parse(localStorage.getItem('favoriteCities')) || [];
 
 function getUserLocation() {
     const isLocationAvailable = Math.random() > 0.2;
-    if (!isLocationAvailable) throw new Error("Failed to detect location. Geolocation data is unavailable.");
+    if (!isLocationAvailable) throw new Error("Geolocation data unavailable.");
     return { latitude: 40.7128, longitude: -74.0060 };
 }
 
@@ -24,7 +25,7 @@ function convertTemperature(tempC) {
 }
 
 function generateWeatherForecast(city, latitude, longitude) {
-    if (typeof city !== "string" || city.trim() === "") throw new Error("Invalid city name.");
+    if (!city.trim()) throw new Error("Invalid city name.");
 
     const weatherConditions = ["Sunny", "Cloudy", "Rainy", "Snowy", "Stormy", "Foggy"];
     const forecast = [];
@@ -44,7 +45,7 @@ function generateWeatherForecast(city, latitude, longitude) {
             temperature,
             condition,
             icon: getWeatherIcon(condition),
-            humidity: `${humidity}%`,
+            humidity,
             latitude,
             longitude
         });
@@ -88,7 +89,6 @@ async function fetchCurrentWeather(city) {
         document.getElementById("weather-description").textContent = "Condition: " + data.weather[0].description + " " + getWeatherIcon(data.weather[0].main);
 
     } catch (error) {
-        console.error(error.message);
         alert(error.message);
     }
 }
@@ -99,28 +99,74 @@ function refreshForecast(city) {
         const forecastData = generateWeatherForecast(city, location.latitude, location.longitude);
         displayForecastOnPage(forecastData, "forecast-user", city);
     } catch (error) {
-        console.error(error.message);
         alert(error.message);
     }
 }
 
-document.addEventListener("DOMContentLoaded", function() {
-    document.getElementById("search-btn").addEventListener("click", function () {
+// Favorite Cities Functions
+function addFavoriteCity(city) {
+    const location = getUserLocation();
+    if (!favoriteCities.some(fav => fav.name === city)) {
+        favoriteCities.push({ name: city, latitude: location.latitude, longitude: location.longitude });
+        localStorage.setItem('favoriteCities', JSON.stringify(favoriteCities));
+        renderFavoriteCities();
+    }
+}
+
+function removeFavoriteCity(city) {
+    favoriteCities = favoriteCities.filter(fav => fav.name !== city);
+    localStorage.setItem('favoriteCities', JSON.stringify(favoriteCities));
+    renderFavoriteCities();
+}
+
+function renderFavoriteCities() {
+    const list = document.getElementById('favorite-cities-list');
+    list.innerHTML = "";
+    favoriteCities.forEach(city => {
+        const li = document.createElement('li');
+        li.textContent = city.name;
+        li.style.cursor = "pointer";
+        li.addEventListener('click', () => {
+            refreshForecast(city.name);
+            fetchCurrentWeather(city.name);
+        });
+        const removeBtn = document.createElement('button');
+        removeBtn.textContent = "Remove";
+        removeBtn.style.marginLeft = "10px";
+        removeBtn.addEventListener('click', e => {
+            e.stopPropagation();
+            removeFavoriteCity(city.name);
+        });
+        li.appendChild(removeBtn);
+        list.appendChild(li);
+    });
+}
+
+// Event Listeners
+document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("search-btn").addEventListener("click", () => {
         const city = document.getElementById("city-input").value;
         refreshForecast(city);
         fetchCurrentWeather(city);
     });
 
-    document.getElementById("toggle-btn").addEventListener("click", function () {
+    document.getElementById("toggle-btn").addEventListener("click", () => {
         isFahrenheit = !isFahrenheit;
         const city = document.getElementById("city-input").value || "New York";
         refreshForecast(city);
         fetchCurrentWeather(city);
     });
 
-    document.getElementById("refresh-btn").addEventListener("click", function () {
+    document.getElementById("refresh-btn").addEventListener("click", () => {
         const city = document.getElementById("city-input").value || "New York";
         refreshForecast(city);
         fetchCurrentWeather(city);
     });
+
+    document.getElementById("add-favorite-btn").addEventListener("click", () => {
+        const city = document.getElementById("city-input").value;
+        if (city) addFavoriteCity(city);
+    });
+
+    renderFavoriteCities();
 });
